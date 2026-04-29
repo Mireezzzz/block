@@ -1,7 +1,7 @@
 import random
 import math
 from typing import Optional
-from backend.models import JBIItem, TrailerConfig, PlacedItem, Trip
+from models import JBIItem, TrailerConfig, PlacedItem, Trip
 
 
 def calculate_optimizer(initial_items: list[JBIItem], trailer: TrailerConfig) -> list[Trip]:
@@ -29,7 +29,7 @@ def calculate_optimizer(initial_items: list[JBIItem], trailer: TrailerConfig) ->
     # 3. Имитация отжига (Simulated Annealing)
     temp = 1000.0
     cooling_rate = 0.94
-    iterations = 600
+    iterations = 100
 
     for _ in range(iterations):
         next_order = current_order[:]
@@ -119,7 +119,7 @@ def pack_items(order: list[JBIItem], trailer: TrailerConfig) -> list[Trip]:
 def find_physical_spot(
     placed: list[PlacedItem], item: JBIItem, trailer: TrailerConfig
 ) -> Optional[PlacedItem]:
-    x_step = 100
+    x_step = 25
     total_len = trailer.lower_length + trailer.upper_length
 
     y_center = (trailer.total_width - item.width) / 2

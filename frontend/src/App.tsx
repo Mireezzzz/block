@@ -5,7 +5,7 @@ import { INITIAL_ITEMS, DEFAULT_TRAILER } from "./constants";
 import { JBIItem, TrailerConfig, Trip } from "./types";
 import TripVisualizer from "./components/TripVisualizer";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 export default function App() {
   const [items, setItems] = useState<JBIItem[]>(INITIAL_ITEMS);

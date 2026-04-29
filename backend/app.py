@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from backend.models import JBIItem, TrailerConfig
-from backend.optimizer import calculate_optimizer
+from models import JBIItem, TrailerConfig
+from optimizer import calculate_optimizer
 
 app = Flask(__name__)
 CORS(app)  # разрешаем запросы с Vite dev server (порт 3000)
