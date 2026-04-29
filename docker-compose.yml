@@ -1,0 +1,115 @@
+
+# ============================================================
+# АРХИТЕКТУРА: 3 контейнера + 1 shared volume
+#
+#   [browser] → nginx:80
+#                 ├── /        → читает dist/ из volume
+#                 └── /api/    → proxy → backend:5000
+#
+#   frontend  → собирает React → пишет dist/ в volume → завершается
+#   backend   → Flask API, всегда запущен
+#   nginx     → раздаёт статику + проксирует API, всегда запущен
+# ============================================================
+
+services:
+
+  # ──────────────────────────────────────────────────────────
+  # 1. frontend — сборщик (build-only контейнер)
+  #    Запускается один раз, делает "npm run build",
+  #    кладёт dist/ в shared volume "frontend-dist" и завершается.
+  #    nginx подхватывает этот volume.
+  # ──────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: jbi-frontend-builder
+
+    # Монтируем volume: /app/dist внутри контейнера ↔ volume "frontend-dist"
+    # После "npm run build" папка dist/ оказывается в volume
+    volumes:
+      - frontend-dist:/app/dist
+
+    # Не перезапускаем — контейнер должен отработать и завершиться
+    restart: "no"
+
+    networks:
+      - jbi-network
+
+  # ──────────────────────────────────────────────────────────
+  # 2. backend — Flask API
+  # ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: jbi-backend
+
+    ports:
+      - "5000:5000"   # оставляем для прямого доступа из Postman/curl
+
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+
+    restart: unless-stopped
+
+    networks:
+      - jbi-network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ──────────────────────────────────────────────────────────
+  # 3. nginx — веб-сервер (отдельный контейнер, отдельная папка)
+  #    Читает статику из volume frontend-dist
+  #    Проксирует /api/ → backend:5000
+  # ──────────────────────────────────────────────────────────
+  nginx:
+    build:
+      context: ./nginx       # ← своя папка со своим Dockerfile и nginx.conf
+      dockerfile: Dockerfile
+
+    container_name: jbi-nginx
+
+    ports:
+      - "80:80"              # единственная точка входа для браузера
+
+    # Тот же volume что и у frontend — nginx его читает, frontend пишет
+    volumes:
+      - frontend-dist:/usr/share/nginx/html:ro   # ro = read-only, nginx только читает
+
+    depends_on:
+      frontend:              # ждём пока сборщик закончит писать dist/
+        condition: service_completed_successfully
+      backend:               # ждём пока API поднялся
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    networks:
+      - jbi-network
+
+# ============================================================
+# VOLUMES
+# ============================================================
+volumes:
+  frontend-dist:
+    # Анонимный volume — Docker создаёт и управляет сам.
+    # Данные живут между перезапусками контейнеров.
+    # Удалить: docker-compose down -v
+
+# ============================================================
+# СЕТИ
+# ============================================================
+networks:
+  jbi-network:
+    driver: bridge
+    # Все три контейнера в одной сети.
+    # Имена сервисов работают как DNS: nginx → backend:5000
