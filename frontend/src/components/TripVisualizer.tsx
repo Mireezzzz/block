@@ -10,8 +10,8 @@ export default function TripVisualizer({ trip, trailer }: Props) {
   const scale = 0.05;
   const padding = 20;
   const viewWidth = (trailer.lowerLength + trailer.upperLength) * scale + padding * 2;
-  const viewHeight = 320;
-  const crossSectionHeight = 200;
+  const viewHeight = 220; // Reduced height to remove empty space above side view (was 320)
+  const crossSectionHeight = 180;
   const deckHeight = 34;
 
   const colors: Record<string, string> = {

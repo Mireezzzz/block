@@ -211,26 +211,26 @@ export default function App() {
               <div className="bg-white rounded-3xl shadow-md border border-slate-200 overflow-hidden h-full">
                 {selectedTrip ? (
                   <motion.div key={selectedTrip.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full">
-                    <div className="p-6 border-b border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-6">
-                      <div className="md:col-span-4 flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xl font-bold shrink-0">
+                    <div className="p-4 border-b border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <div className="md:col-span-4 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-lg font-bold shrink-0">
                           {selectedTrip.id}
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg leading-none italic">Рейс №{selectedTrip.id}</h3>
+                          <h3 className="font-bold text-base leading-none italic">Рейс №{selectedTrip.id}</h3>
                           <p className="text-slate-400 text-[10px] uppercase font-bold mt-1 tracking-wider">План загрузки</p>
                         </div>
                       </div>
 
                       <div className="md:col-span-5 flex items-center">
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-1 w-full">
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
                           {Object.entries(
                             selectedTrip.items.reduce((acc, pi) => {
                               acc[pi.item.name] = (acc[pi.item.name] || 0) + (pi.item.count || 1);
                               return acc;
                             }, {} as Record<string, number>)
                           ).map(([name, count]) => (
-                            <div key={name} className="flex justify-between items-center text-sm">
+                            <div key={name} className="flex justify-between items-center text-xs">
                               <span className="text-slate-500 truncate mr-2 italic">{name}</span>
                               <span className="font-black text-slate-800">{count} шт.</span>
                             </div>
@@ -238,9 +238,9 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="md:col-span-3 flex flex-col justify-center border-l border-slate-50 pl-6 gap-3">
+                      <div className="md:col-span-3 flex flex-col justify-center border-l border-slate-50 pl-4 gap-2">
                         <div>
-                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase mb-1">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase mb-0.5">
                             <span>Масса</span>
                             <span className={selectedTrip.totalWeight > trailer.maxWeight ? "text-red-500" : "text-blue-600"}>
                               {(selectedTrip.totalWeight / 1000).toFixed(1)} т
@@ -254,15 +254,15 @@ export default function App() {
                           </div>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Центровка</p>
-                          <div className={`text-sm font-black flex items-center gap-1 ${Math.abs(selectedTrip.cgMismatch) > 500 ? "text-amber-600" : "text-green-600"}`}>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Центровка</p>
+                          <div className={`text-xs font-black flex items-center gap-1 ${Math.abs(selectedTrip.cgMismatch) > 500 ? "text-amber-600" : "text-green-600"}`}>
                             {Math.abs(selectedTrip.cgMismatch) < 100 ? "ИДЕАЛЬНО" : `ЦТ: ${selectedTrip.cgXFromRear.toFixed(0)} мм`}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-6 bg-white flex flex-col gap-6">
+                    <div className="p-4 bg-white flex flex-col gap-4">
                       <TripVisualizer 
                         trip={{
                           ...selectedTrip, 
