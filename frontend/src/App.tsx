@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Truck, Calculator, Package, AlertCircle, Weight, ArrowRight, Table, Loader2 } from "lucide-react";
+import { Truck, Calculator, Package, AlertCircle, Table, Loader2 } from "lucide-react";
 import { INITIAL_ITEMS, DEFAULT_TRAILER } from "./constants";
 import { JBIItem, TrailerConfig, Trip } from "./types";
 import TripVisualizer from "./components/TripVisualizer";
@@ -11,12 +11,24 @@ export default function App() {
   const [items, setItems] = useState<JBIItem[]>(INITIAL_ITEMS);
   const [trailer, setTrailer] = useState<TrailerConfig>(DEFAULT_TRAILER);
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
   const [isCalculated, setIsCalculated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(0);
 
   const totalWeight = useMemo(() => items.reduce((sum, item) => sum + item.weight * item.count, 0), [items]);
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.count, 0), [items]);
+  const selectedTrip = useMemo(
+    () => trips.find((trip) => trip.id === selectedTripId) ?? trips[0] ?? null,
+    [trips, selectedTripId]
+  );
+
+  useEffect(() => {
+    if (selectedTrip) {
+      setCurrentStep(selectedTrip.items.length);
+    }
+  }, [selectedTrip]);
 
   const handleCalculate = async () => {
     setIsCalculated(false);
@@ -31,6 +43,7 @@ export default function App() {
       if (!res.ok) throw new Error(`Ошибка сервера: ${res.status}`);
       const data = await res.json();
       setTrips(data.trips);
+      setSelectedTripId(data.trips?.[0]?.id ?? null);
       setIsCalculated(true);
     } catch (e: any) {
       setError(e.message ?? "Не удалось связаться с сервером");
@@ -40,18 +53,19 @@ export default function App() {
   };
 
   const handleReset = () => {
-    setItems(INITIAL_ITEMS.map(it => ({ ...it })));
+    setItems(INITIAL_ITEMS.map((it) => ({ ...it })));
     setTrips([]);
+    setSelectedTripId(null);
     setIsCalculated(false);
     setError(null);
   };
 
   const updateItemCount = (id: string, count: number) => {
-    setItems(items.map(it => it.id === id ? { ...it, count: Math.max(0, count) } : it));
+    setItems(items.map((it) => (it.id === id ? { ...it, count: Math.max(0, count) } : it)));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans p-4 md:p-8">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 font-sans p-4 md:p-8">
       <header className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
@@ -75,16 +89,16 @@ export default function App() {
           </div>
           <div className="px-4 border-l border-slate-100">
             <p className="text-xs font-semibold text-slate-400 uppercase">Будет рейсов</p>
-            <p className="text-lg font-bold text-indigo-600 italic">
-              {isCalculated ? trips.length : '—'}
-            </p>
+            <p className="text-lg font-bold text-indigo-600 italic">{isCalculated ? trips.length : "—"}</p>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Inputs */}
-        <section className="lg:col-span-4 space-y-6">
+      <main
+        className="max-w-[1800px] mx-auto grid grid-cols-1 gap-8"
+        style={{ gridTemplateColumns: "minmax(0, 25%) minmax(0, 60%) minmax(0, 15%)" }}
+      >
+        <section className="min-w-0 space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-4 bg-slate-900 text-white flex items-center gap-2">
               <Table size={18} />
@@ -92,7 +106,10 @@ export default function App() {
             </div>
             <div className="p-4 space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 hover:border-blue-200 transition-colors"
+                >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">{item.code}</span>
@@ -106,7 +123,9 @@ export default function App() {
                     <button
                       onClick={() => updateItemCount(item.id, item.count - 1)}
                       className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50"
-                    >-</button>
+                    >
+                      -
+                    </button>
                     <input
                       type="number"
                       value={item.count}
@@ -116,7 +135,9 @@ export default function App() {
                     <button
                       onClick={() => updateItemCount(item.id, item.count + 1)}
                       className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-50"
-                    >+</button>
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
               ))}
@@ -187,8 +208,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Right Column: Results */}
-        <section className="lg:col-span-8 space-y-8">
+        <section className="min-w-0 space-y-8">
           {!isCalculated ? (
             <div className="h-full flex flex-col items-center justify-center text-slate-300 py-20 bg-white/50 rounded-3xl border-2 border-dashed border-slate-200">
               <Package size={48} className="mb-4 opacity-50" />
@@ -196,30 +216,24 @@ export default function App() {
             </div>
           ) : (
             <AnimatePresence>
-              <div className="space-y-8">
-                {trips.map((trip, idx) => (
-                  <motion.div
-                    key={trip.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="bg-white rounded-3xl shadow-md border border-slate-200 overflow-hidden"
-                  >
+              <div className="bg-white rounded-3xl shadow-md border border-slate-200 overflow-hidden h-full">
+                {selectedTrip ? (
+                  <motion.div key={selectedTrip.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="h-full">
                     <div className="p-6 border-b border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-6">
-                      <div className="md:col-span-3 flex items-center gap-4">
+                      <div className="md:col-span-4 flex items-center gap-4">
                         <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-xl font-bold shrink-0">
-                          {trip.id}
+                          {selectedTrip.id}
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg leading-none italic">Рейс №{trip.id}</h3>
+                          <h3 className="font-bold text-lg leading-none italic">Рейс №{selectedTrip.id}</h3>
                           <p className="text-slate-400 text-[10px] uppercase font-bold mt-1 tracking-wider">План загрузки</p>
                         </div>
                       </div>
 
-                      <div className="md:col-span-6 flex items-center">
+                      <div className="md:col-span-5 flex items-center">
                         <div className="grid grid-cols-2 gap-x-6 gap-y-1 w-full">
                           {Object.entries(
-                            trip.items.reduce((acc, pi) => {
+                            selectedTrip.items.reduce((acc, pi) => {
                               acc[pi.item.name] = (acc[pi.item.name] || 0) + (pi.item.count || 1);
                               return acc;
                             }, {} as Record<string, number>)
@@ -236,35 +250,101 @@ export default function App() {
                         <div>
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase mb-1">
                             <span>Масса</span>
-                            <span className={trip.totalWeight > trailer.maxWeight ? 'text-red-500' : 'text-blue-600'}>
-                              {(trip.totalWeight / 1000).toFixed(1)} т
+                            <span className={selectedTrip.totalWeight > trailer.maxWeight ? "text-red-500" : "text-blue-600"}>
+                              {(selectedTrip.totalWeight / 1000).toFixed(1)} т
                             </span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full ${trip.totalWeight > trailer.maxWeight ? 'bg-red-500' : 'bg-blue-600'}`}
-                              style={{ width: `${Math.min(100, (trip.totalWeight / trailer.maxWeight) * 100)}%` }}
+                              className={`h-full ${selectedTrip.totalWeight > trailer.maxWeight ? "bg-red-500" : "bg-blue-600"}`}
+                              style={{ width: `${Math.min(100, (selectedTrip.totalWeight / trailer.maxWeight) * 100)}%` }}
                             />
                           </div>
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Центровка</p>
-                          <div className={`text-sm font-black flex items-center gap-1 ${Math.abs(trip.cgMismatch) > 500 ? 'text-amber-600' : 'text-green-600'}`}>
-                            {Math.abs(trip.cgMismatch) < 100 ? 'ИДЕАЛЬНО' : `ЦТ: ${trip.cgXFromRear.toFixed(0)} мм`}
+                          <div className={`text-sm font-black flex items-center gap-1 ${Math.abs(selectedTrip.cgMismatch) > 500 ? "text-amber-600" : "text-green-600"}`}>
+                            {Math.abs(selectedTrip.cgMismatch) < 100 ? "ИДЕАЛЬНО" : `ЦТ: ${selectedTrip.cgXFromRear.toFixed(0)} мм`}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-8 bg-white">
-                      <TripVisualizer trip={trip} trailer={trailer} />
+                    <div className="p-6 bg-white flex flex-col gap-6">
+                      <TripVisualizer 
+                        trip={{
+                          ...selectedTrip, 
+                          items: [...selectedTrip.items]
+                            .sort((a, b) => (a.sequenceNumber ?? 0) - (b.sequenceNumber ?? 0))
+                            .slice(0, currentStep)
+                        }} 
+                        trailer={trailer} 
+                      />
+                      
+                      <div className="px-6 py-4 bg-white rounded-full border border-slate-200 shadow-sm flex items-center gap-6 mt-2 mx-auto w-full max-w-2xl">
+                        <span className="text-sm font-bold text-slate-500 whitespace-nowrap min-w-[3.5rem]">Шаг 0</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max={selectedTrip.items.length}
+                          value={currentStep}
+                          onChange={(e) => setCurrentStep(parseInt(e.target.value, 10))}
+                          className="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 hover:accent-blue-500 focus:outline-none"
+                        />
+                        <span className="text-sm font-bold text-slate-500 whitespace-nowrap min-w-[4rem] text-right">Шаг {selectedTrip.items.length}</span>
+                      </div>
                     </div>
                   </motion.div>
-                ))}
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-300 py-20">
+                    <Package size={48} className="mb-4 opacity-50" />
+                    <p className="text-xl font-medium">Выберите рейс справа</p>
+                  </div>
+                )}
               </div>
             </AnimatePresence>
           )}
         </section>
+
+        <aside className="min-w-0">
+          <div className="sticky top-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 bg-slate-900 text-white flex items-center gap-2">
+              <Table size={18} />
+              <h2 className="font-semibold">Рейсы</h2>
+            </div>
+
+            <div className="p-3 space-y-2">
+              {!isCalculated && <p className="text-sm text-slate-400 p-3">Сначала нажмите «Рассчитать».</p>}
+
+              {trips.map((trip) => {
+                const isActive = trip.id === selectedTrip?.id;
+                return (
+                  <button
+                    key={trip.id}
+                    onClick={() => setSelectedTripId(trip.id)}
+                    className={`w-full text-left rounded-xl border p-3 transition-all ${isActive
+                      ? "border-blue-500 bg-blue-50 shadow-sm"
+                      : "border-slate-200 bg-white hover:border-blue-200 hover:bg-slate-50"
+                      }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-slate-900">Рейс №{trip.id}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{trip.items.length} позиций</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-slate-900">{(trip.totalWeight / 1000).toFixed(1)} т</div>
+                        <div className={`text-xs ${Math.abs(trip.cgMismatch) > 500 ? "text-amber-600" : "text-green-600"}`}>
+                          ΔЦТ {trip.cgMismatch >= 0 ? "+" : ""}{trip.cgMismatch.toFixed(0)} мм
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </aside>
       </main>
 
       <footer className="max-w-7xl mx-auto mt-20 pt-8 border-t border-slate-200 pb-12 text-center text-slate-400 text-sm">

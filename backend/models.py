@@ -29,6 +29,7 @@ class TrailerConfig:
 @dataclass
 class PlacedItem:
     item: JBIItem
+    sequence_number: int
     x: float
     y: float
     z: float
@@ -48,6 +49,7 @@ class PlacedItem:
                 "weight": self.item.weight,
                 "count": self.item.count,
             },
+            "sequenceNumber": self.sequence_number,
             "x": self.x,
             "y": self.y,
             "z": self.z,

@@ -22,6 +22,7 @@ export interface TrailerConfig {
 
 export interface PlacedItem {
   item: JBIItem;
+  sequenceNumber: number;
   x: number; // from rear
   y: number; // width offset
   z: number; // height offset

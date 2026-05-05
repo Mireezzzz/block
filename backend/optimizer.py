@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 from models import JBIItem, TrailerConfig, PlacedItem, Trip
 
@@ -9,6 +10,12 @@ ITEM_PRIORITY = {
     "ПБ":    2,
     "ЛМ":    3,
 }
+
+
+@dataclass
+class ExpandedItem:
+    item: JBIItem
+    sequence_number: int
 
 
 def normalize_item(group: JBIItem) -> JBIItem:
@@ -29,18 +36,21 @@ def normalize_item(group: JBIItem) -> JBIItem:
 
 
 def calculate_optimizer(initial_items: list[JBIItem], trailer: TrailerConfig) -> list[Trip]:
-    flat_items: list[JBIItem] = []
+    flat_items: list[ExpandedItem] = []
+    sequence_number = 1
     for group in initial_items:
         for _ in range(group.count):
-            flat_items.append(normalize_item(group))
+            flat_items.append(ExpandedItem(item=normalize_item(group), sequence_number=sequence_number))
+            sequence_number += 1
 
     if not flat_items:
         return []
 
     flat_items.sort(key=lambda it: (
-        ITEM_PRIORITY.get(it.code, 99),
-        -it.weight,
-        -it.length,
+        ITEM_PRIORITY.get(it.item.code, 99),
+        -it.item.weight,
+        -it.item.length,
+        it.sequence_number,
     ))
 
     trips: list[Trip] = []
@@ -64,27 +74,29 @@ def calculate_optimizer(initial_items: list[JBIItem], trailer: TrailerConfig) ->
 
 
 def pack_one_trip(
-    items: list[JBIItem], trailer: TrailerConfig
-) -> tuple[list[PlacedItem], list[JBIItem]]:
+    items: list[ExpandedItem], trailer: TrailerConfig
+) -> tuple[list[PlacedItem], list[ExpandedItem]]:
     placed: list[PlacedItem] = []
-    used: list[JBIItem] = []
+    used: list[ExpandedItem] = []
     current_weight = 0.0
 
-    for item in items:
+    for expanded in items:
+        item = expanded.item
         if current_weight + item.weight > trailer.max_weight:
             continue
-        spot = find_spot(placed, item, trailer)
+        spot = find_spot(placed, expanded, trailer)
         if spot:
             placed.append(spot)
-            used.append(item)
+            used.append(expanded)
             current_weight += item.weight
 
     return placed, used
 
 
 def find_spot(
-    placed: list[PlacedItem], item: JBIItem, trailer: TrailerConfig
+    placed: list[PlacedItem], expanded: ExpandedItem, trailer: TrailerConfig
 ) -> Optional[PlacedItem]:
+    item = expanded.item
     total_len = trailer.lower_length + trailer.upper_length
 
     ideal_x = trailer.ideal_cg_from_rear - item.length / 2
@@ -141,7 +153,9 @@ def find_spot(
             if score < best_score:
                 best_score = score
                 best_spot = PlacedItem(
-                    item=item, x=x, y=y, z=z,
+                    item=item,
+                    sequence_number=expanded.sequence_number,
+                    x=x, y=y, z=z,
                     width=item.width, length=item.length, height=item.height,
                 )
 

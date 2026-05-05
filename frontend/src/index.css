@@ -7,7 +7,9 @@
 }
 
 @layer base {
+  html,
   body {
     @apply antialiased;
+    overflow-x: hidden;
   }
 }
