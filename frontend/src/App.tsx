@@ -222,17 +222,17 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="md:col-span-5 flex items-center">
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 w-full">
+                      <div className="md:col-span-5 flex items-start">
+                        <div className="flex flex-col gap-2 w-full">
                           {Object.entries(
                             selectedTrip.items.reduce((acc, pi) => {
                               acc[pi.item.name] = (acc[pi.item.name] || 0) + (pi.item.count || 1);
                               return acc;
                             }, {} as Record<string, number>)
                           ).map(([name, count]) => (
-                            <div key={name} className="flex justify-between items-center text-xs">
-                              <span className="text-slate-500 truncate mr-2 italic">{name}</span>
-                              <span className="font-black text-slate-800">{count} шт.</span>
+                            <div key={name} className="flex items-start justify-between text-xs">
+                              <span className="text-slate-500 truncate italic">{name}</span>
+                              <span className="font-black text-slate-800 ml-4">{count} шт.</span>
                             </div>
                           ))}
                         </div>
