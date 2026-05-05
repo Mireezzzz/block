@@ -21,9 +21,9 @@
 │   ├── Dockerfile
 │   ├── .dockerignore
 │   ├── requirements.txt
-│   ├── app.py          # Flask API
-│   ├── optimizer.py    # алгоритм размещения
-│   └── models.py       # структуры данных
+│   ├── app.py
+│   ├── optimizer.py 
+│   └── models.py
 ├── frontend/
 │   ├── Dockerfile
 │   ├── .dockerignore
@@ -51,7 +51,7 @@
 docker-compose up -d --build
 ```
 
-Приложение откроется на [http://localhost](http://localhost).
+Приложение откроется на http://localhost.
 
 ## Как работает алгоритм
 
@@ -93,7 +93,7 @@ docker-compose up -d --build
 }
 ```
 
-Поле `trailer` необязательно - без него используются параметры по умолчанию.
+Поле `trailer` необязательно, без него используются параметры по умолчанию.
 
 Ответ:
 ```json
@@ -129,5 +129,3 @@ npm install
 npm run dev
 # → http://localhost:3000
 ```
-
-Vite автоматически проксирует `/api/*` на `localhost:5000` (настроено в `vite.config.ts`).

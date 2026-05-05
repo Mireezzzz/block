@@ -12,14 +12,10 @@ ITEM_PRIORITY = {
 
 
 def normalize_item(group: JBIItem) -> JBIItem:
-    """
-    ПШЛ-1: в исходных данных width=2830, length=2030 — перепутаны.
-    Поперёк прицепа (2400мм) должен идти меньший размер = 2030мм.
-    Принудительно выставляем: width=2030 (поперёк), length=2830 (вдоль).
-    """
+
     if group.code == "ПШЛ-1":
-        w = min(group.width, group.length)  # 2030 — поперёк
-        l = max(group.width, group.length)  # 2830 — вдоль
+        w = min(group.width, group.length)
+        l = max(group.width, group.length)
         return JBIItem(id=group.id, code=group.code, name=group.name,
                        width=w, length=l, height=group.height,
                        weight=group.weight, count=1)
@@ -165,12 +161,7 @@ def compute_z(overlap: list[PlacedItem]) -> float:
 
 
 def check_placement_rules(item: JBIItem, overlap: list[PlacedItem]) -> bool:
-    """
-    ПШЛ-1 — только на пустой пол, ничего под/над
-    На ПШЛ-1 — нельзя ничего
-    ЛМ — на любой груз; на ЛМ только ЛМ
-    ПТ/ПП/ПБ — не на ЛМ, не на ПШЛ-1
-    """
+
     codes_below = {p.item.code for p in overlap}
 
     if item.code == "ПШЛ-1":
@@ -189,10 +180,7 @@ def check_stability(
     placed: list[PlacedItem], item: JBIItem,
     x: float, y: float, z: float
 ) -> bool:
-    """
-    Центр тяжести груза должен проецироваться внутрь bbox опоры.
-    Опора = грузы чей верх == z и пересекаются с нами в плане.
-    """
+
     cx = x + item.length / 2
     cy = y + item.width / 2
 
@@ -218,19 +206,11 @@ def score_position(
     item: JBIItem, x: float, y: float, z: float,
     trailer: TrailerConfig, placed: list[PlacedItem]
 ) -> float:
-    """
-    Меньше = лучше.
-    1. Сначала пол (штраф за высоту)
-    2. Ближе к идеальному ЦТ по X
-    3. Симметрия по Y
-    4. ЛМ штрафуем если есть свободный пол — пусть лучше займут место на полу
-       чем лезут на ПБ/ПП когда там есть пустое место
-    """
+
     cg_dist_x = abs((x + item.length / 2) - trailer.ideal_cg_from_rear)
     cg_dist_y = abs((y + item.width / 2) - trailer.total_width / 2)
     height_penalty = z * 10
 
-    # Штраф для ЛМ: если z>0 и под ней не другая ЛМ — предпочитаем пол
     lm_on_plates_penalty = 0.0
     if item.code == "ЛМ" and z > 0:
         support_codes = {
@@ -240,7 +220,7 @@ def score_position(
             and p.y < y + item.width and p.y + p.width > y
         }
         if "ЛМ" not in support_codes:
-            lm_on_plates_penalty = 5000.0  # сильный штраф — лестница на не-лестнице
+            lm_on_plates_penalty = 5000.0
 
     return height_penalty + cg_dist_x * 3.0 + cg_dist_y * 0.5 + lm_on_plates_penalty
 
