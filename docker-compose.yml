@@ -79,7 +79,7 @@ services:
     container_name: jbi-nginx
 
     ports:
-      - "80:80"              # единственная точка входа для браузера
+      - "8080:80"            # единственная точка входа для браузера
 
     # Тот же volume что и у frontend — nginx его читает, frontend пишет
     volumes:
