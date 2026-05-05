@@ -73,25 +73,6 @@ export default function App() {
           </h1>
           <p className="text-slate-500 mt-1">Оптимизация загрузки железобетонных изделий на полуприцеп</p>
         </div>
-
-        <div className="flex bg-white p-4 rounded-xl shadow-sm border border-slate-200 divide-x divide-slate-100">
-          <div className="px-4">
-            <p className="text-xs font-semibold text-slate-400 uppercase">Общий вес</p>
-            <p className="text-lg font-bold">{(totalWeight / 1000).toFixed(1)} т</p>
-          </div>
-          <div className="px-4">
-            <p className="text-xs font-semibold text-slate-400 uppercase">Изделий</p>
-            <p className="text-lg font-bold">{totalItems} шт</p>
-          </div>
-          <div className="px-4">
-            <p className="text-xs font-semibold text-slate-400 uppercase">Лимит прицепа</p>
-            <p className="text-lg font-bold text-blue-600">{(trailer.maxWeight / 1000).toFixed(1)} т</p>
-          </div>
-          <div className="px-4 border-l border-slate-100">
-            <p className="text-xs font-semibold text-slate-400 uppercase">Будет рейсов</p>
-            <p className="text-lg font-bold text-indigo-600 italic">{isCalculated ? trips.length : "—"}</p>
-          </div>
-        </div>
       </header>
 
       <main
@@ -148,6 +129,17 @@ export default function App() {
                   {error}
                 </div>
               )}
+
+              <div className="flex bg-white p-4 rounded-xl shadow-sm border border-slate-200 divide-x divide-slate-100">
+                <div className="px-4 flex-1 text-center">
+                  <p className="text-xs font-semibold text-slate-400 uppercase">Общий вес</p>
+                  <p className="text-lg font-bold">{(totalWeight / 1000).toFixed(1)} т</p>
+                </div>
+                <div className="px-4 flex-1 text-center border-l border-slate-100">
+                  <p className="text-xs font-semibold text-slate-400 uppercase">Изделий</p>
+                  <p className="text-lg font-bold">{totalItems} шт</p>
+                </div>
+              </div>
 
               <div className="flex gap-2 mt-4">
                 <button
