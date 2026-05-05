@@ -230,9 +230,9 @@ export default function App() {
                               return acc;
                             }, {} as Record<string, number>)
                           ).map(([name, count]) => (
-                            <div key={name} className="flex items-start justify-between text-xs">
-                              <span className="text-slate-500 truncate italic">{name}</span>
-                              <span className="font-black text-slate-800 ml-4">{count} шт.</span>
+                            <div key={name} className="flex items-center gap-2 text-xs">
+                              <span className="text-slate-500 italic flex-1">{name}</span>
+                              <span className="font-black text-slate-800">{count} шт.</span>
                             </div>
                           ))}
                         </div>
