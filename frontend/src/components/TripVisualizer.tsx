@@ -148,9 +148,8 @@ export default function TripVisualizer({ trip, trailer }: Props) {
             const drawX = isLeft 
               ? padding + (totalLength - placed.x - placed.length) * scale 
               : padding + placed.x * scale;
-            const isUpper = placed.x >= trailer.lowerLength;
-            const baseY = isUpper ? viewHeight - 20 - deckHeight - trailer.heightDiff * scale : viewHeight - 20 - deckHeight;
-            const y = baseY - (placed.z + placed.height) * scale;
+            const lowerDeckTopY = viewHeight - 20 - deckHeight;
+            const y = lowerDeckTopY - (placed.z + placed.height) * scale;
 
             return (
               <motion.g key={`${isLeft ? "left" : "right"}-${placed.sequenceNumber ?? i}`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>

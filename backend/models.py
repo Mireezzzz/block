@@ -39,8 +39,8 @@ RULES_REGISTRY = {
     "ЛМ": PlacementRules(
         can_rotate_yaw=False,
         requires_empty_top=False,
-        stack_only_on_same=False,
-        allow_only_same_on_top=False
+        stack_only_on_same=True,
+        allow_only_same_on_top=True
     ),
 }
 
