@@ -226,12 +226,15 @@ export default function App() {
                         <div className="flex flex-col gap-2 w-full">
                           {Object.entries(
                             selectedTrip.items.reduce((acc, pi) => {
-                              acc[pi.item.name] = (acc[pi.item.name] || 0) + (pi.item.count || 1);
+                              const key = pi.item.code;
+                              acc[key] = (acc[key] || 0) + 1;
                               return acc;
                             }, {} as Record<string, number>)
                           ).map(([name, count]) => (
                             <div key={name} className="flex items-center gap-2 text-xs">
-                              <span className="text-slate-500 italic flex-1">{name}</span>
+                              <span className="text-slate-500 italic flex-1">
+                                {selectedTrip.items.find((item) => item.item.code === name)?.item.name ?? name}
+                              </span>
                               <span className="font-black text-slate-800">{count} шт.</span>
                             </div>
                           ))}

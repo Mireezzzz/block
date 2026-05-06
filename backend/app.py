@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models import JBIItem, TrailerConfig
+from models import JBIItem, TrailerConfig, enrich_item_with_rules
 from optimizer import calculate_optimizer
 
 app = Flask(__name__)
@@ -37,7 +37,7 @@ def optimize():
     raw_items = data.get("items", [])
     items = []
     for it in raw_items:
-        items.append(JBIItem(
+        items.append(enrich_item_with_rules(JBIItem(
             id=str(it["id"]),
             code=it["code"],
             name=it["name"],
@@ -46,7 +46,7 @@ def optimize():
             height=float(it["height"]),
             weight=float(it["weight"]),
             count=int(it["count"]),
-        ))
+        )))
 
     # Парсим trailer (или используем дефолтный)
     raw_trailer = data.get("trailer")

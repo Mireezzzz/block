@@ -43,6 +43,8 @@
     └── nginx.conf
 ```
 
+Подробное описание слоёв, потока данных и контейнерной схемы см. в [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Запуск
 
 **Требования:** Docker и Docker Compose.
